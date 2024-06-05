@@ -8,16 +8,14 @@ platform "webserver"
 ProgramForHost : {
     decodeModel : [Init, Existing (List U8)] -> Result (Box Model) Str,
     encodeModel : Box Model -> List U8,
-    handleReadRequest : Request, Box Model -> Response,
-    handleWriteRequest : Request, Box Model -> (Response, Box Model),
+    handleRequest : Request, Box Model -> Task Response U32,
 }
 
 mainForHost : ProgramForHost
 mainForHost = {
     decodeModel,
     encodeModel,
-    handleReadRequest,
-    handleWriteRequest,
+    handleRequest,
 }
 
 decodeModel : [Init, Existing (List U8)] -> Result (Box Model) Str
@@ -29,11 +27,7 @@ encodeModel : Box Model -> List U8
 encodeModel = \boxedModel ->
     main.encodeModel (Box.unbox boxedModel)
 
-handleReadRequest : Request, Box Model -> Response
-handleReadRequest = \request, boxedModel ->
+handleRequest : Request, Box Model -> Task Response U32
+handleRequest = \request, boxedModel ->
     main.handleReadRequest request (Box.unbox boxedModel)
 
-handleWriteRequest : Request, Box Model -> (Response, Box Model)
-handleWriteRequest = \request, boxedModel ->
-    (resp, newModel) = main.handleWriteRequest request (Box.unbox boxedModel)
-    (resp, newModel |> Box.box)
